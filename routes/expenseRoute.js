@@ -11,6 +11,8 @@ const {
 
 router.route("/:id").get(getExpense).delete(deleteExpense).put(updateExpense);
 router.route("/").post(createExpense);
-router.route("/getAllExpensesForUser/:username").get(getAllExepnsesForUser);
+router
+  .route("/getAllExpensesForUser/:username/y/:year/m/:month")
+  .get(getAllExepnsesForUser);
 
 module.exports = router;
