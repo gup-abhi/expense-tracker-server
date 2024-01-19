@@ -9,6 +9,9 @@ const { errorHandler } = require("./middleware/errorMiddleware");
 app.use(express.json());
 app.use(cors());
 
+// Client build
+app.use(express.static("client/build"));
+
 // Routes
 app.use("/api/category", require("./routes/categoryRoute"));
 app.use("/api/user", require("./routes/userRoute"));
