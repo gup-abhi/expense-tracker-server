@@ -4,7 +4,9 @@ const pool = require("../config/db");
 
 /**
  * @description Method get all the expenses for username
- * @param username username
+ * @param {string} username
+ * @param {number} year
+ * @param {number} month
  */
 const getAllExepnsesForUser = asyncHandler(async (req, res) => {
   const { username } = req.params;
@@ -32,7 +34,7 @@ ORDER BY date desc`;
 
 /**
  * @description Method get an expense using id
- * @param id expense id
+ * @param {number} id expense id
  */
 const getExpense = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -49,7 +51,7 @@ const getExpense = asyncHandler(async (req, res) => {
 
 /**
  * @description Method to create a new expense
- * @param username username
+ * @param {string} username
  * @body
  */
 const createExpense = asyncHandler(async (req, res) => {
@@ -124,10 +126,31 @@ const deleteExpense = asyncHandler(async (req, res) => {
   }
 });
 
+/**
+ * @description Method to get total amount for each category for the user for a particular month
+ * @param {string} username
+ * @param {number} year
+ * @param {number} month
+ */
+const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
+  const { username, year, month } = req.params;
+
+  const queryString = `SELECT c.category_name, COALESCE(TO_CHAR(SUM(e.amount), 'FM999999990.00'), '0') as total_amount
+  FROM categories c 
+  LEFT JOIN expenses e ON e.category_id = c.id AND e.username = $1
+  AND EXTRACT(YEAR FROM e.date) = $2
+  AND EXTRACT(MONTH FROM e.date) = $3
+  GROUP BY c.category_name;
+  `;
+  const { rows } = await pool.query(queryString, [username, year, month]);
+  res.status(200).json(rows);
+});
+
 module.exports = {
   getExpense,
   getAllExepnsesForUser,
   createExpense,
   updateExpense,
   deleteExpense,
+  getTotalAmountForEachCategory,
 };
