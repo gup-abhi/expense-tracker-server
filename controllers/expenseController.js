@@ -135,7 +135,7 @@ const deleteExpense = asyncHandler(async (req, res) => {
 const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   const { username, year, month } = req.params;
 
-  const queryString = `SELECT c.category_name, COALESCE(TO_CHAR(SUM(e.amount), 'FM999999990.00'), '0') as total_amount
+  const queryString = `SELECT c.category_name as label, COALESCE(TO_CHAR(SUM(e.amount), 'FM999999990.00'), '0') as value
   FROM categories c 
   LEFT JOIN expenses e ON e.category_id = c.id AND e.username = $1
   AND EXTRACT(YEAR FROM e.date) = $2
@@ -143,7 +143,12 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   GROUP BY c.category_name;
   `;
   const { rows } = await pool.query(queryString, [username, year, month]);
-  res.status(200).json(rows);
+  const rowsWithId = rows.map((row, index) => ({
+    id: index,
+    ...row,
+  }));
+  console.log(`rows - ${JSON.stringify(rowsWithId)}`);
+  res.status(200).json(rowsWithId);
 });
 
 module.exports = {
