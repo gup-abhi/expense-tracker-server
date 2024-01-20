@@ -143,12 +143,23 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   GROUP BY c.category_name;
   `;
   const { rows } = await pool.query(queryString, [username, year, month]);
+  let total = 0;
   const rowsWithId = rows.map((row, index) => ({
     id: index,
     ...row,
   }));
+
+  for (let i = 0; i < rows.length; i++) {
+    total += Number(rows[i].value);
+  }
+
   console.log(`rows - ${JSON.stringify(rowsWithId)}`);
-  res.status(200).json(rowsWithId);
+
+  if (total !== 0) {
+    res.status(200).json(rowsWithId);
+  } else {
+    res.status(404).json({ message: `No Data found for ${year}-${month}` });
+  }
 });
 
 module.exports = {
