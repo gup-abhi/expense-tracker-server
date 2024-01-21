@@ -12,16 +12,19 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
   const { username } = req.params;
   const { year } = req.params;
   const { month } = req.params;
-  const queryString = `SELECT e.*, e.category_id, c.category_name 
-FROM expenses e 
-JOIN categories c
-ON e.category_id = c.id
-WHERE username = $1
-AND
-EXTRACT(YEAR FROM date) = $2 
-AND 
-EXTRACT(MONTH FROM date) = $3
-ORDER BY date desc`;
+  const queryString = `SELECT x.currency_code, e.*, c.category_name
+  from currencies x, categories c, expenses e, users u
+  where 
+  e.username = $1
+  and 
+  c.id = e.category_id
+  and 
+  u.currency_id = x.id
+  and 
+  EXTRACT(YEAR FROM date) = $2
+  AND 
+  EXTRACT(MONTH FROM date) = $3
+  order by date desc`;
   const { rows } = await pool.query(queryString, [username, year, month]);
 
   if (rows.length === 0) {

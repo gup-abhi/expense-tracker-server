@@ -1,6 +1,14 @@
 DROP TABLE IF EXISTS users cascade;
 DROP TABLE IF EXISTS categories cascade;
 DROP TABLE IF EXISTS expenses cascade;
+DROP TABLE IF EXISTS currencies cascade;
+
+--Currencies Table
+CREATE TABLE currencies (
+    id SERIAL PRIMARY KEY,
+    currency_code CHAR(3) UNIQUE NOT NULL,
+    currency_name VARCHAR(50) NOT NULL
+);
 
 --Users Table
 CREATE TABLE users (
@@ -8,7 +16,8 @@ CREATE TABLE users (
     username VARCHAR(50) PRIMARY KEY,
     password VARCHAR(50) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_on TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    currency_id INTEGER REFERENCES currencies(id) 
 );
 
 --Categories Table
@@ -39,3 +48,10 @@ INSERT INTO categories (category_name) VALUES ('Personal Care');
 INSERT INTO categories (category_name) VALUES ('Clothing');
 INSERT INTO categories (category_name) VALUES ('Savings & Investments');
 INSERT INTO categories (category_name) VALUES ('Miscellaneous');
+
+--Insert some currencies
+INSERT INTO currencies (currency_code, currency_name) VALUES ('USD', 'United States Dollar');
+INSERT INTO currencies (currency_code, currency_name) VALUES ('CAD', 'Canadian Dollar');
+INSERT INTO currencies (currency_code, currency_name) VALUES ('EUR', 'Euro');
+INSERT INTO currencies (currency_code, currency_name) VALUES ('GBP', 'British Pound');
+INSERT INTO currencies (currency_code, currency_name) VALUES ('JPY', 'Japanese Yen');

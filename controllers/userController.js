@@ -34,15 +34,20 @@ const getUser = asyncHandler(async (req, res) => {
  * @description Method to create a new user
  */
 const createUser = asyncHandler(async (req, res) => {
-  const { username, password, email } = req.body;
-  if (!username || !password || !email) {
+  const { username, password, email, currency_id } = req.body;
+  if (!username || !password || !email || !currency_id) {
     res.status(400);
     throw new Error("Please add all the details");
   }
 
   const queryString =
-    "INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING *";
-  const { rows } = await pool.query(queryString, [username, password, email]);
+    "INSERT INTO users (username, password, email, currency_id) VALUES ($1, $2, $3, $4) RETURNING *";
+  const { rows } = await pool.query(queryString, [
+    username,
+    password,
+    email,
+    currency_id,
+  ]);
   res.status(201).json(rows);
 });
 

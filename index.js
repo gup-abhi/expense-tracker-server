@@ -16,6 +16,7 @@ app.use(express.static("client/build"));
 app.use("/api/category", require("./routes/categoryRoute"));
 app.use("/api/user", require("./routes/userRoute"));
 app.use("/api/expense", require("./routes/expenseRoute"));
+app.use("/api/currency", require("./routes/currencyRoute"));
 
 // Error Middleware
 app.use(errorHandler);
