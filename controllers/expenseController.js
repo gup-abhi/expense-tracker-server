@@ -12,6 +12,8 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
   const { username } = req.params;
   const { year } = req.params;
   const { month } = req.params;
+  let { category_id } = req.params;
+  category_id = category_id == "NULL" ? null : category_id;
   const queryString = `SELECT x.currency_code, e.*, c.category_name
   from currencies x, categories c, expenses e, users u
   where 
@@ -24,8 +26,15 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
   EXTRACT(YEAR FROM date) = $2
   AND 
   EXTRACT(MONTH FROM date) = $3
+  AND 
+  ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
   order by date desc`;
-  const { rows } = await pool.query(queryString, [username, year, month]);
+  const { rows } = await pool.query(queryString, [
+    username,
+    year,
+    month,
+    category_id,
+  ]);
 
   if (rows.length === 0) {
     res.status(404);
