@@ -15,7 +15,13 @@ const getCategories = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("No categories found");
   } else {
-    res.status(200).json(rows);
+    res.status(200).json([
+      ...rows,
+      {
+        id: 12,
+        category_name: "All",
+      },
+    ]);
   }
 });
 

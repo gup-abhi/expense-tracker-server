@@ -13,7 +13,7 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
   const { year } = req.params;
   const { month } = req.params;
   let { category_id } = req.params;
-  category_id = category_id == "NULL" ? null : category_id;
+  category_id = Number(category_id) == 12 ? null : category_id;
   const queryString = `SELECT x.currency_code, e.*, c.category_name
   from currencies x, categories c, expenses e, users u
   where 
