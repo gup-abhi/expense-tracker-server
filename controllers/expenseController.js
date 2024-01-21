@@ -146,15 +146,23 @@ const deleteExpense = asyncHandler(async (req, res) => {
  */
 const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   const { username, year, month } = req.params;
+  let { category_id } = req.params;
+  category_id = Number(category_id) == 12 ? null : category_id;
 
   const queryString = `SELECT c.category_name as label, COALESCE(TO_CHAR(SUM(e.amount), 'FM999999990.00'), '0') as value
   FROM categories c 
   LEFT JOIN expenses e ON e.category_id = c.id AND e.username = $1
   AND EXTRACT(YEAR FROM e.date) = $2
   AND EXTRACT(MONTH FROM e.date) = $3
+  AND ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
   GROUP BY c.category_name;
   `;
-  const { rows } = await pool.query(queryString, [username, year, month]);
+  const { rows } = await pool.query(queryString, [
+    username,
+    year,
+    month,
+    category_id,
+  ]);
   let total = 0;
   const rowsWithId = rows.map((row, index) => ({
     id: index,

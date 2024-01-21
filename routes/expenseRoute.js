@@ -16,7 +16,9 @@ router
   .route("/getAllExpensesForUser/:username/y/:year/m/:month/c/:category_id")
   .get(getAllExepnsesForUser);
 router
-  .route("/getTotalAmountForEachCategory/:username/y/:year/m/:month")
+  .route(
+    "/getTotalAmountForEachCategory/:username/y/:year/m/:month/c/:category_id"
+  )
   .get(getTotalAmountForEachCategory);
 
 module.exports = router;
