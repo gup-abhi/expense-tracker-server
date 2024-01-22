@@ -13,22 +13,27 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
   const { year } = req.params;
   const { month } = req.params;
   let { category_id } = req.params;
-  category_id = Number(category_id) == 12 ? null : category_id;
-  const queryString = `SELECT x.currency_code, e.*, c.category_name
-  from currencies x, categories c, expenses e, users u
+  category_id = Number(category_id) == 17 ? null : category_id;
+  const queryString = `SELECT x.currency_code, t.*, c.category_name, tt.type as transaction_type, pm.method as payment_method
+  from currencies x, categories c, transactions t, users u, transaction_types tt, payment_methods pm
   where 
-  e.username = $1
+  t.username = $1
   and 
-  c.id = e.category_id
+  c.id = t.category_id
   and 
   u.currency_id = x.id
+  and 
+  tt.id = t.transaction_type_id
+  and 
+  pm.id = t.payment_method_id
   and 
   EXTRACT(YEAR FROM date) = $2
   AND 
   EXTRACT(MONTH FROM date) = $3
   AND 
   ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
-  order by date desc`;
+  order by date desc
+`;
   const { rows } = await pool.query(queryString, [
     username,
     year,
@@ -50,14 +55,14 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
  */
 const getExpense = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const queryString = "SELECT * FROM expenses where id = $1";
+  const queryString = "SELECT * FROM transactions where id = $1";
   const { rows } = await pool.query(queryString, [id]);
 
   if (rows.length === 0) {
     res.status(404);
     throw new Error(`Expense doesn't exist for id ${id}`);
   } else {
-    res.status(200).json(rows);
+    res.status(200).json(...rows);
   }
 });
 
@@ -67,20 +72,39 @@ const getExpense = asyncHandler(async (req, res) => {
  * @body
  */
 const createExpense = asyncHandler(async (req, res) => {
-  const { date, amount, category_id, expense, username } = req.body;
-  if (!expense || !date || !amount || !category_id) {
+  const {
+    date,
+    amount,
+    category_id,
+    description,
+    username,
+    transaction_type_id,
+    payment_method_id,
+  } = req.body;
+  if (
+    !description ||
+    !date ||
+    !amount ||
+    !category_id ||
+    !transaction_type_id ||
+    !payment_method_id
+  ) {
     res.status(400);
     throw new Error("Please send all the details");
   }
 
-  const queryString =
-    "INSERT INTO expenses (username, date, amount, category_id, expense) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+  const queryString = `INSERT INTO transactions 
+    (username, date, amount, category_id, description, transaction_type_id, payment_method_id) 
+    VALUES 
+    ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
   const { rows } = await pool.query(queryString, [
     username,
     date,
     amount,
     category_id,
-    expense,
+    description,
+    transaction_type_id,
+    payment_method_id,
   ]);
   res.status(201).json({ message: "Expense created successfully", ...rows[0] });
 });
@@ -90,20 +114,38 @@ const createExpense = asyncHandler(async (req, res) => {
  * @param id expense id
  */
 const updateExpense = asyncHandler(async (req, res) => {
-  const { expense, date, category_id, amount } = req.body;
+  const {
+    description,
+    date,
+    category_id,
+    amount,
+    transaction_type_id,
+    payment_method_id,
+  } = req.body;
   const { id } = req.params;
-  if (!expense || !date || !category_id || !amount || !id) {
+  if (
+    !description ||
+    !date ||
+    !category_id ||
+    !amount ||
+    !id ||
+    !transaction_type_id ||
+    !payment_method_id
+  ) {
     res.status(400);
     throw new Error("Please send all the details");
   }
 
-  const queryString =
-    "UPDATE expenses SET expense = $1, date = $2, category_id = $3, amount = $4 WHERE id = $5 RETURNING *";
+  const queryString = `UPDATE transactions 
+  SET description = $1, date = $2, category_id = $3, amount = $4, transaction_type_id = $5, payment_method_id = $6 
+  WHERE id = $7 RETURNING *`;
   const { rows } = await pool.query(queryString, [
-    expense,
+    description,
     date,
     category_id,
     amount,
+    transaction_type_id,
+    payment_method_id,
     id,
   ]);
   console.info(`rows - ${JSON.stringify(rows)}`);
@@ -125,7 +167,7 @@ const updateExpense = asyncHandler(async (req, res) => {
 const deleteExpense = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const queryString = "DELETE FROM expenses WHERE id = $1 RETURNING *";
+  const queryString = "DELETE FROM transactions WHERE id = $1 RETURNING *";
   const { rows } = await pool.query(queryString, [id]);
 
   if (rows.length === 0) {

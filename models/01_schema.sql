@@ -1,7 +1,9 @@
 DROP TABLE IF EXISTS users cascade;
 DROP TABLE IF EXISTS categories cascade;
-DROP TABLE IF EXISTS expenses cascade;
 DROP TABLE IF EXISTS currencies cascade;
+DROP TABLE IF EXISTS transactions cascade;
+DROP TABLE IF EXISTS transaction_types cascade;
+DROP TABLE IF EXISTS payment_methods cascade;
 
 --Currencies Table
 CREATE TABLE currencies (
@@ -26,15 +28,48 @@ CREATE TABLE categories (
     category_name VARCHAR(50) UNIQUE NOT NULL
 );
 
---Expenses Table
-CREATE TABLE expenses (
+-- Create a new transaction_types table
+CREATE TABLE transaction_types (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- Create a new payment_methods table
+CREATE TABLE payment_methods (
+    id SERIAL PRIMARY KEY,
+    method VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- Create a new expenses table
+CREATE TABLE transactions (
     id SERIAL PRIMARY KEY,
     amount DECIMAL(10, 2) NOT NULL,
-    expense VARCHAR(100) NOT NULL,
+    description VARCHAR(100) NOT NULL,
     date DATE NOT NULL,
     category_id INTEGER REFERENCES categories(id),
-    username VARCHAR(50) REFERENCES users(username)
+    username VARCHAR(50) REFERENCES users(username),
+    transaction_type_id INTEGER REFERENCES transaction_types(id),
+    payment_method_id INTEGER REFERENCES payment_methods(id)
 );
+
+-- Insert Default transaction types
+INSERT INTO transaction_types (type) VALUES ('Income');
+INSERT INTO transaction_types (type) VALUES ('Expense');
+INSERT INTO transaction_types (type) VALUES ('Transfer');
+INSERT INTO transaction_types (type) VALUES ('Investment');
+INSERT INTO transaction_types (type) VALUES ('Loan');
+INSERT INTO transaction_types (type) VALUES ('Reimbursement');
+INSERT INTO transaction_types (type) VALUES ('Gift');
+
+
+-- Insert Default payment methods
+INSERT INTO payment_methods (method) VALUES ('Credit');
+INSERT INTO payment_methods (method) VALUES ('Debit');
+INSERT INTO payment_methods (method) VALUES ('Cash');
+INSERT INTO payment_methods (method) VALUES ('Check');
+INSERT INTO payment_methods (method) VALUES ('Mobile Payment');
+INSERT INTO payment_methods (method) VALUES ('Wire Transfer');
+INSERT INTO payment_methods (method) VALUES ('Cryptocurrency');
 
 --Insert Default categories
 INSERT INTO categories (category_name) VALUES ('Groceries');
@@ -47,6 +82,11 @@ INSERT INTO categories (category_name) VALUES ('Healthcare');
 INSERT INTO categories (category_name) VALUES ('Personal Care');
 INSERT INTO categories (category_name) VALUES ('Clothing');
 INSERT INTO categories (category_name) VALUES ('Savings & Investments');
+INSERT INTO categories (category_name) VALUES ('Salary');
+INSERT INTO categories (category_name) VALUES ('Freelance');
+INSERT INTO categories (category_name) VALUES ('Investment Returns');
+INSERT INTO categories (category_name) VALUES ('Gifts');
+INSERT INTO categories (category_name) VALUES ('Other Income');
 INSERT INTO categories (category_name) VALUES ('Miscellaneous');
 
 --Insert some currencies
