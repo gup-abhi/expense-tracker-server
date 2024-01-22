@@ -18,7 +18,7 @@ const getCategories = asyncHandler(async (req, res) => {
     res.status(200).json([
       ...rows,
       {
-        id: 17,
+        id: process.env.CATEGORY_ALL_ID,
         category_name: "All",
       },
     ]);

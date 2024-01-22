@@ -7,13 +7,29 @@ const pool = require("../config/db");
  * @param {string} username
  * @param {number} year
  * @param {number} month
+ * @param {number} category_id
+ * @param {number} payment_method_id
+ * @param {number} transaction_type_id
  */
 const getAllExepnsesForUser = asyncHandler(async (req, res) => {
   const { username } = req.params;
   const { year } = req.params;
   const { month } = req.params;
   let { category_id } = req.params;
-  category_id = Number(category_id) == 17 ? null : category_id;
+  let { payment_method_id } = req.params;
+  let { transaction_type_id } = req.params;
+
+  category_id =
+    Number(category_id) == process.env.CATEGORY_ALL_ID ? null : category_id;
+  payment_method_id =
+    Number(payment_method_id) == process.env.PAYMENT_METHODS_ALL_ID
+      ? null
+      : payment_method_id;
+  transaction_type_id =
+    Number(transaction_type_id) == process.env.TRANSACTION_TYPES_ALL_ID
+      ? null
+      : transaction_type_id;
+
   const queryString = `SELECT x.currency_code, t.*, c.category_name, tt.type as transaction_type, pm.method as payment_method
   from currencies x, categories c, transactions t, users u, transaction_types tt, payment_methods pm
   where 
@@ -32,6 +48,10 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
   EXTRACT(MONTH FROM date) = $3
   AND 
   ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
+  AND
+  ($5::INTEGER IS NULL OR pm.id = $5::INTEGER)
+  AND
+  ($6::INTEGER IS NULL OR tt.id = $6::INTEGER)
   order by date desc
 `;
   const { rows } = await pool.query(queryString, [
@@ -39,6 +59,8 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
     year,
     month,
     category_id,
+    payment_method_id,
+    transaction_type_id,
   ]);
 
   if (rows.length === 0) {
@@ -185,11 +207,26 @@ const deleteExpense = asyncHandler(async (req, res) => {
  * @param {string} username
  * @param {number} year
  * @param {number} month
+ * @param {number} category_id
+ * @param {number} payment_method_id
+ * @param {number} transaction_type_id
  */
 const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   const { username, year, month } = req.params;
   let { category_id } = req.params;
-  category_id = Number(category_id) == 17 ? null : category_id;
+  let { payment_method_id } = req.params;
+  let { transaction_type_id } = req.params;
+
+  category_id =
+    Number(category_id) == process.env.CATEGORY_ALL_ID ? null : category_id;
+  payment_method_id =
+    Number(payment_method_id) == process.env.PAYMENT_METHODS_ALL_ID
+      ? null
+      : payment_method_id;
+  transaction_type_id =
+    Number(transaction_type_id) == process.env.TRANSACTION_TYPES_ALL_ID
+      ? null
+      : transaction_type_id;
 
   const queryString = `SELECT c.category_name as label, COALESCE(TO_CHAR(SUM(t.amount), 'FM999999990.00'), '0') as value
   FROM categories c 
@@ -197,13 +234,17 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   AND EXTRACT(YEAR FROM t.date) = $2
   AND EXTRACT(MONTH FROM t.date) = $3
   AND ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
-  GROUP BY c.category_name;
+  AND ($5::INTEGER IS NULL OR t.payment_method_id = $5::INTEGER)
+  AND ($6::INTEGER IS NULL OR t.transaction_type_id = $6::INTEGER)
+  GROUP BY c.category_name;;
   `;
   const { rows } = await pool.query(queryString, [
     username,
     year,
     month,
     category_id,
+    payment_method_id,
+    transaction_type_id,
   ]);
   let total = 0;
   const rowsWithId = rows.map((row, index) => ({

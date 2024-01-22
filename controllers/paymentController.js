@@ -17,10 +17,10 @@ const getPaymentTypes = asyncHandler(async (req, res) => {
   } else {
     res.status(200).json([
       ...rows,
-      //   {
-      //     id: 12,
-      //     category_name: "All",
-      //   },
+      {
+        id: process.env.PAYMENT_METHODS_ALL_ID,
+        method: "All",
+      },
     ]);
   }
 });

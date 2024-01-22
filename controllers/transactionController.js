@@ -17,10 +17,10 @@ const getTransactionTypes = asyncHandler(async (req, res) => {
   } else {
     res.status(200).json([
       ...rows,
-      //   {
-      //     id: 12,
-      //     category_name: "All",
-      //   },
+      {
+        id: process.env.TRANSACTION_TYPES_ALL_ID,
+        type: "All",
+      },
     ]);
   }
 });
