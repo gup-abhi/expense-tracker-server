@@ -63,6 +63,8 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
     transaction_type_id,
   ]);
 
+  console.log(`rows - ${JSON.stringify(rows)}`);
+
   if (rows.length === 0) {
     res.status(404);
     throw new Error(`No expense found for ${username} for ${year}-${month}`);
