@@ -3,10 +3,10 @@ const asyncHandler = require("express-async-handler");
 const pool = require("../config/db");
 
 /**
- * @description Method get the user
+ * @description Method to get the user
  */
 const getUser = asyncHandler(async (req, res) => {
-  const { username, password } = req.params;
+  const { username, password } = req.query;
   console.info(`username - ${username} :: password - ${password}`);
 
   if (!username || !password) {
@@ -34,24 +34,51 @@ const getUser = asyncHandler(async (req, res) => {
  * @description Method to create a new user
  */
 const createUser = asyncHandler(async (req, res) => {
-  const { username, password, email, currency_id } = req.body;
+  const { username, password, email, currency_id, budget } = req.body;
   if (!username || !password || !email || !currency_id) {
     res.status(400);
     throw new Error("Please add all the details");
   }
 
   const queryString =
-    "INSERT INTO users (username, password, email, currency_id) VALUES ($1, $2, $3, $4) RETURNING *";
+    "INSERT INTO users (username, password, email, currency_id, budget) VALUES ($1, $2, $3, $4, $5) RETURNING *";
   const { rows } = await pool.query(queryString, [
     username,
     password,
     email,
     currency_id,
+    budget,
   ]);
   res.status(201).json(rows);
+});
+
+/**
+ * @description Method to get the budget
+ */
+const getBudget = asyncHandler(async (req, res) => {
+  const { username } = req.query;
+  console.info(`username - ${username}`);
+
+  if (!username) {
+    res.status(400);
+    throw new Error("Username is missing");
+  }
+
+  const queryString = "SELECT budget FROM users where username = $1";
+  const { rows } = await pool.query(queryString, [username]);
+
+  console.info(`rows - ${JSON.stringify(rows)}`);
+
+  if (rows.length === 0) {
+    res.status(404);
+    throw new Error("username is invalid");
+  } else {
+    res.status(200).json(rows[0]);
+  }
 });
 
 module.exports = {
   createUser,
   getUser,
+  getBudget,
 };

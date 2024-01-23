@@ -22,6 +22,8 @@ CREATE TABLE users (
     currency_id INTEGER REFERENCES currencies(id) 
 );
 
+Alter table users add column budget DECIMAL(10, 2);
+
 --Categories Table
 CREATE TABLE categories (
     id SERIAL PRIMARY KEY,

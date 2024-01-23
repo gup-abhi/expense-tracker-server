@@ -12,12 +12,12 @@ const pool = require("../config/db");
  * @param {number} transaction_type_id
  */
 const getAllExepnsesForUser = asyncHandler(async (req, res) => {
-  const { username } = req.params;
-  const { year } = req.params;
-  const { month } = req.params;
-  let { category_id } = req.params;
-  let { payment_method_id } = req.params;
-  let { transaction_type_id } = req.params;
+  const { username } = req.query;
+  const { year } = req.query;
+  const { month } = req.query;
+  let { category_id } = req.query;
+  let { payment_method_id } = req.query;
+  let { transaction_type_id } = req.query;
 
   category_id =
     Number(category_id) == process.env.CATEGORY_ALL_ID ? null : category_id;
@@ -76,7 +76,7 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
  * @param {number} id expense id
  */
 const getExpense = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.query;
   const queryString = "SELECT * FROM transactions where id = $1";
   const { rows } = await pool.query(queryString, [id]);
 
@@ -90,7 +90,6 @@ const getExpense = asyncHandler(async (req, res) => {
 
 /**
  * @description Method to create a new expense
- * @param {string} username
  * @body
  */
 const createExpense = asyncHandler(async (req, res) => {
@@ -144,7 +143,7 @@ const updateExpense = asyncHandler(async (req, res) => {
     transaction_type_id,
     payment_method_id,
   } = req.body;
-  const { id } = req.params;
+  const { id } = req.query;
   if (
     !description ||
     !date ||
@@ -187,7 +186,7 @@ const updateExpense = asyncHandler(async (req, res) => {
  * @param id expense id
  */
 const deleteExpense = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.query;
 
   const queryString = "DELETE FROM transactions WHERE id = $1 RETURNING *";
   const { rows } = await pool.query(queryString, [id]);
@@ -212,10 +211,10 @@ const deleteExpense = asyncHandler(async (req, res) => {
  * @param {number} transaction_type_id
  */
 const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
-  const { username, year, month } = req.params;
-  let { category_id } = req.params;
-  let { payment_method_id } = req.params;
-  let { transaction_type_id } = req.params;
+  const { username, year, month } = req.query;
+  let { category_id } = req.query;
+  let { payment_method_id } = req.query;
+  let { transaction_type_id } = req.query;
 
   category_id =
     Number(category_id) == process.env.CATEGORY_ALL_ID ? null : category_id;
@@ -246,12 +245,13 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
     payment_method_id,
     transaction_type_id,
   ]);
+
   let total = 0;
+
   const rowsWithId = rows.map((row, index) => ({
     id: index,
     ...row,
   }));
-
   for (let i = 0; i < rows.length; i++) {
     total += Number(rows[i].value);
   }
