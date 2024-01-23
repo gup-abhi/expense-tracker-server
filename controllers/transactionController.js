@@ -15,13 +15,16 @@ const getTransactionTypes = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("No transaction types found");
   } else {
-    res.status(200).json([
-      ...rows,
-      {
+    const response = [...rows];
+
+    if (req.query.includeAll === "true") {
+      response.push({
         id: process.env.TRANSACTION_TYPES_ALL_ID,
         type: "All",
-      },
-    ]);
+      });
+    }
+
+    res.status(200).json(response);
   }
 });
 

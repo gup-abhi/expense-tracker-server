@@ -15,13 +15,16 @@ const getPaymentTypes = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("No payment methods found");
   } else {
-    res.status(200).json([
-      ...rows,
-      {
+    const response = [...rows];
+
+    if (req.query.includeAll === "true") {
+      response.push({
         id: process.env.PAYMENT_METHODS_ALL_ID,
         method: "All",
-      },
-    ]);
+      });
+    }
+
+    res.status(200).json(response);
   }
 });
 

@@ -15,13 +15,17 @@ const getCategories = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("No categories found");
   } else {
-    res.status(200).json([
-      ...rows,
-      {
+    const response = [...rows];
+
+    // Check if the extra parameter should be included
+    if (req.query.includeAll === "true") {
+      response.push({
         id: process.env.CATEGORY_ALL_ID,
         category_name: "All",
-      },
-    ]);
+      });
+    }
+
+    res.status(200).json(response);
   }
 });
 
