@@ -250,13 +250,15 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
 
   let total = 0;
 
-  const rowsWithId = rows.map((row, index) => ({
-    id: index,
-    ...row,
-  }));
   for (let i = 0; i < rows.length; i++) {
     total += Number(rows[i].value);
   }
+
+  const rowsWithId = rows.map((row, index) => ({
+    id: index,
+    ...row,
+    total,
+  }));
 
   console.log(`rows - ${JSON.stringify(rowsWithId)}`);
 
