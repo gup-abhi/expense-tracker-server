@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const PORT = process.env.PORT || 7000;
 const { errorHandler } = require("./middleware/errorMiddleware");
+require("./cron/cronJob");
 
 // Middleware
 app.use(express.json());
