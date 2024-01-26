@@ -15,6 +15,6 @@ async function execute() {
 }
 
 // Schedule the cron job to run every minute
-cron.schedule("* 12 * * *", () => {
+cron.schedule("*/12 * * * *", () => {
   execute();
 });
