@@ -278,6 +278,44 @@ ORDER BY month;
 });
 
 /**
+ * @description Method to get total expense for a particular month and user
+ * @param {string} username
+ * @param {number} month
+ * @param {number} year
+ */
+const getTotalExpenseForMonth = asyncHandler(async (req, res) => {
+  const { username, year, month } = req.query;
+
+  if (!username || !year || !month) {
+    res.status(400);
+    throw new Error("Username, month or year is missing");
+  }
+
+  const queryString = `
+  SELECT u.username, EXTRACT(YEAR FROM t.date) as year, EXTRACT(MONTH FROM t.date) as month, 
+       COALESCE(sum(t.amount), 0) as total_expense
+FROM users as u
+JOIN transactions as t ON u.username = t.username
+JOIN transaction_types as tt ON t.transaction_type_id = tt.id
+WHERE u.username = $1
+AND tt.type = 'Expense'
+AND EXTRACT(YEAR FROM t.date) = $2
+AND EXTRACT(MONTH FROM t.date) = $3
+GROUP BY u.username, year, month
+ORDER BY month;
+
+  `;
+  const { rows } = await pool.query(queryString, [username, year, month]);
+
+  if (rows.length === 0) {
+    res.status(404);
+    throw new Error(`No expense done yet!!`);
+  } else {
+    res.status(200).json(rows[0]);
+  }
+});
+
+/**
  * @description Method to get total amount for each category for the user for a particular month
  * @param {string} username
  * @param {number} year
@@ -352,4 +390,5 @@ module.exports = {
   getTotalAmountForEachCategory,
   getTopExpenses,
   getTotalExpense,
+  getTotalExpenseForMonth,
 };

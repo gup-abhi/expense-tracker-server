@@ -10,6 +10,7 @@ const {
   getTotalAmountForEachCategory,
   getTopExpenses,
   getTotalExpense,
+  getTotalExpenseForMonth,
 } = require("../controllers/expenseController");
 
 router
@@ -24,6 +25,8 @@ router.route("/getAllExpensesForUser").get(getAllExepnsesForUser);
 router.route("/getTopExpenses").get(getTopExpenses);
 
 router.route("/getTotalExpense").get(getTotalExpense);
+
+router.route("/getTotalExpenseForMonth").get(getTotalExpenseForMonth);
 
 router
   .route("/getTotalAmountForEachCategory")
