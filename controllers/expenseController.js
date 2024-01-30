@@ -204,6 +204,80 @@ const deleteExpense = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @description Method to get top 5 expenses
+ * @param {string} username
+ * @param {number} year
+ * @param {number} month
+ */
+const getTopExpenses = asyncHandler(async (req, res) => {
+  const { username, year, month } = req.query;
+
+  if (!username || !year || !month) {
+    res.status(400);
+    throw new Error("Username, year or month is missing");
+  }
+
+  const queryString = `
+  SELECT u.username, c.category_name, t.description, t.amount, EXTRACT(YEAR FROM t.date) as year, EXTRACT(MONTH FROM t.date) as month
+FROM users as u
+JOIN transactions as t ON u.username = t.username
+JOIN categories as c ON t.category_id = c.id
+JOIN transaction_types as tt ON t.transaction_type_id = tt.id
+WHERE u.username = $1
+AND tt.type = 'Expense'
+AND EXTRACT(YEAR FROM t.date) = $2
+AND EXTRACT(MONTH FROM t.date) = $3
+ORDER BY t.amount DESC
+LIMIT 5;
+
+  `;
+  const { rows } = await pool.query(queryString, [username, year, month]);
+
+  if (rows.length === 0) {
+    res.status(404);
+    throw new Error(`No expense done yet!!`);
+  } else {
+    res.status(200).json(rows);
+  }
+});
+
+/**
+ * @description Method to get total expense for a particular year and user
+ * @param {string} username
+ * @param {number} year
+ */
+const getTotalExpense = asyncHandler(async (req, res) => {
+  const { username, year } = req.query;
+
+  if (!username || !year) {
+    res.status(400);
+    throw new Error("Username or year is missing");
+  }
+
+  const queryString = `
+  SELECT u.username, EXTRACT(YEAR FROM t.date) as year, EXTRACT(MONTH FROM t.date) as month, 
+       COALESCE(sum(t.amount), 0) as total_expense
+FROM users as u
+JOIN transactions as t ON u.username = t.username
+JOIN transaction_types as tt ON t.transaction_type_id = tt.id
+WHERE u.username = $1
+AND tt.type = 'Expense'
+AND EXTRACT(YEAR FROM t.date) = $2
+GROUP BY u.username, year, month
+ORDER BY month;
+
+  `;
+  const { rows } = await pool.query(queryString, [username, year]);
+
+  if (rows.length === 0) {
+    res.status(404);
+    throw new Error(`No expense done yet!!`);
+  } else {
+    res.status(200).json(rows);
+  }
+});
+
+/**
  * @description Method to get total amount for each category for the user for a particular month
  * @param {string} username
  * @param {number} year
@@ -276,4 +350,6 @@ module.exports = {
   updateExpense,
   deleteExpense,
   getTotalAmountForEachCategory,
+  getTopExpenses,
+  getTotalExpense,
 };

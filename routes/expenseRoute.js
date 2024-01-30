@@ -8,6 +8,8 @@ const {
   createExpense,
   getAllExepnsesForUser,
   getTotalAmountForEachCategory,
+  getTopExpenses,
+  getTotalExpense,
 } = require("../controllers/expenseController");
 
 router
@@ -18,6 +20,10 @@ router
   .post(createExpense);
 
 router.route("/getAllExpensesForUser").get(getAllExepnsesForUser);
+
+router.route("/getTopExpenses").get(getTopExpenses);
+
+router.route("/getTotalExpense").get(getTotalExpense);
 
 router
   .route("/getTotalAmountForEachCategory")

@@ -23,6 +23,7 @@ CREATE TABLE users (
 );
 
 Alter table users add column budget DECIMAL(10, 2);
+Alter table users add column goal DECIMAL(10, 2);
 
 --Categories Table
 CREATE TABLE categories (
