@@ -75,9 +75,9 @@ SELECT
   users.currency_id,
   currencies.currency_code,
   transaction_types.id AS transaction_type_id,
-  transaction_types.type,
+  transaction_types.type AS transaction_type,
   payment_methods.id AS payment_method_id,
-  payment_methods.method
+  payment_methods.method AS payment_method
 FROM 
   recurring_expenses
 JOIN 
