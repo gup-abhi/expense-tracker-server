@@ -61,7 +61,39 @@ const getRecurringExpense = asyncHandler(async (req, res) => {
     throw new Error("Username is missing");
   }
 
-  const queryString = `SELECT * from recurring_expenses where username = $1`;
+  const queryString = `
+SELECT 
+  recurring_expenses.id,
+  recurring_expenses.amount,
+  recurring_expenses.description,
+  recurring_expenses.start_date,
+  recurring_expenses.frequency,
+  recurring_expenses.next_due_date,
+  categories.id AS category_id,
+  categories.category_name,
+  users.username,
+  users.currency_id,
+  currencies.currency_code,
+  transaction_types.id AS transaction_type_id,
+  transaction_types.type,
+  payment_methods.id AS payment_method_id,
+  payment_methods.method
+FROM 
+  recurring_expenses
+JOIN 
+  categories ON recurring_expenses.category_id = categories.id
+JOIN 
+  users ON recurring_expenses.username = users.username
+JOIN 
+  currencies ON users.currency_id = currencies.id
+JOIN 
+  transaction_types ON recurring_expenses.transaction_type_id = transaction_types.id
+JOIN 
+  payment_methods ON recurring_expenses.payment_method_id = payment_methods.id
+WHERE 
+  users.username = $1;
+
+  `;
 
   const { rows } = await pool.query(queryString, [username]);
 
