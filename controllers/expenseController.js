@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-
+const format = require("pg-format");
 const pool = require("../config/db");
 
 /**
@@ -381,6 +381,34 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   }
 });
 
+/**
+ * @description Method to add new expenses in bulk
+ * @param {*} expense
+ * @returns rows returned after insertion
+ */
+const addTransaction = async (expense) => {
+  let insertData = [];
+
+  let object = [];
+
+  object.push(expense["username"]);
+  object.push(expense["next_due_date"]);
+  object.push(expense["amount"]);
+  object.push(expense["category_id"]);
+  object.push(expense["description"]);
+  object.push(expense["transaction_type_id"]);
+  object.push(expense["payment_method_id"]);
+
+  console.log(`object - ${JSON.stringify(object)}`);
+
+  const queryString =
+    "INSERT INTO transactions (username, date, amount, category_id, description, transaction_type_id, payment_method_id)  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *";
+
+  const { rows } = await pool.query(queryString, object);
+
+  console.log(`addTransaction rows - ${JSON.stringify(rows)}`);
+};
+
 module.exports = {
   getExpense,
   getAllExepnsesForUser,
@@ -391,4 +419,5 @@ module.exports = {
   getTopExpenses,
   getTotalExpense,
   getTotalExpenseForMonth,
+  addTransaction,
 };

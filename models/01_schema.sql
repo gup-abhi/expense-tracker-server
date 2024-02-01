@@ -55,6 +55,21 @@ CREATE TABLE transactions (
     payment_method_id INTEGER REFERENCES payment_methods(id)
 );
 
+-- Recurring Expenses Table
+CREATE TABLE recurring_expenses (
+    id SERIAL PRIMARY KEY,
+    amount DECIMAL(10, 2) NOT NULL,
+    description VARCHAR(100) NOT NULL,
+    start_date DATE NOT NULL,
+    frequency VARCHAR(50) NOT NULL,
+    next_due_date DATE NOT NULL,
+    category_id INTEGER REFERENCES categories(id),
+    username VARCHAR(50) REFERENCES users(username),
+    transaction_type_id INTEGER REFERENCES transaction_types(id),
+    payment_method_id INTEGER REFERENCES payment_methods(id)
+);
+
+
 -- Insert Default transaction types
 INSERT INTO transaction_types (type) VALUES ('Income');
 INSERT INTO transaction_types (type) VALUES ('Expense');

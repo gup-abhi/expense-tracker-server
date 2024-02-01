@@ -21,6 +21,7 @@ app.use("/api/expense", require("./routes/expenseRoute"));
 app.use("/api/currency", require("./routes/currencyRoute"));
 app.use("/api/payment", require("./routes/paymentRoute"));
 app.use("/api/transaction", require("./routes/transactionRoute"));
+app.use("/api/recurring", require("./routes/recurringExpenseRoute"));
 
 // Handle any other routes
 app.get("*", (req, res) => {
