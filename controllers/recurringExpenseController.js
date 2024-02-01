@@ -51,7 +51,7 @@ const setRecurringExpense = asyncHandler(async (req, res) => {
 });
 
 /**
- * @description Method to create a new recurring expense
+ * @description Method to get all recurring expense for a user
  */
 const getRecurringExpense = asyncHandler(async (req, res) => {
   const { username } = req.query;
@@ -71,6 +71,30 @@ const getRecurringExpense = asyncHandler(async (req, res) => {
     throw new Error("No recurring expense found");
   } else {
     res.status(200).json(rows);
+  }
+});
+
+/**
+ * @description Method to create a new recurring expense
+ */
+const getRecurringExpenseById = asyncHandler(async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    res.status(400);
+    throw new Error("Id is missing");
+  }
+
+  const queryString = `SELECT * from recurring_expenses where id = $1`;
+
+  const { rows } = await pool.query(queryString, [id]);
+
+  console.info(`rows - ${JSON.stringify(rows)}`);
+
+  if (rows.length === 0) {
+    throw new Error(`No recurring expense found for ${id}`);
+  } else {
+    res.status(200).json(rows[0]);
   }
 });
 
@@ -108,4 +132,5 @@ module.exports = {
   getRecurringExpense,
   getRecurringExpensesDueToday,
   updateRecurringExpenseNextDueDate,
+  getRecurringExpenseById,
 };
