@@ -128,6 +128,7 @@ WHERE
   console.info(`rows - ${JSON.stringify(rows)}`);
 
   if (rows.length === 0) {
+    res.status(404);
     throw new Error("No recurring expense found");
   } else {
     res.status(200).json(rows);
@@ -178,12 +179,10 @@ const deleteRecurringExpense = asyncHandler(async (req, res) => {
   if (rows.length === 0) {
     throw new Error(`No recurring expense found for ${id}`);
   } else {
-    res
-      .status(200)
-      .json({
-        ...rows[0],
-        message: "Recurring Expense deleted successfully!!",
-      });
+    res.status(200).json({
+      ...rows[0],
+      message: "Recurring Expense deleted successfully!!",
+    });
   }
 });
 
