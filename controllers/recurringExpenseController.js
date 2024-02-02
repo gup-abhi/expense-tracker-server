@@ -178,7 +178,12 @@ const deleteRecurringExpense = asyncHandler(async (req, res) => {
   if (rows.length === 0) {
     throw new Error(`No recurring expense found for ${id}`);
   } else {
-    res.status(200).json(rows[0]);
+    res
+      .status(200)
+      .json({
+        ...rows[0],
+        message: "Recurring Expense deleted successfully!!",
+      });
   }
 });
 
