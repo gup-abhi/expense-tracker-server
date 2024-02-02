@@ -19,35 +19,63 @@ const setRecurringExpense = asyncHandler(async (req, res) => {
 
   const next_due_date = getNextDueDate(start_date, frequency);
 
-  const queryString = `INSERT INTO recurring_expenses (
-    amount, 
-    description, 
-    start_date, 
-    frequency, 
-    next_due_date, 
-    category_id, 
-    username, 
-    transaction_type_id, 
-    payment_method_id) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
+  try {
+    await pool.query("BEGIN");
 
-  const { rows } = await pool.query(queryString, [
-    amount,
-    description,
-    start_date,
-    frequency,
-    next_due_date,
-    category_id,
-    username,
-    transaction_type_id,
-    payment_method_id,
-  ]);
+    const recurringExpensesQuery = `INSERT INTO recurring_expenses (
+      amount, 
+      description, 
+      start_date, 
+      frequency, 
+      next_due_date, 
+      category_id, 
+      username, 
+      transaction_type_id, 
+      payment_method_id) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
 
-  console.info(`rows - ${JSON.stringify(rows)}`);
+    const transactionsQuery = `INSERT INTO transactions (
+      amount, 
+      description, 
+      date, 
+      category_id, 
+      username, 
+      transaction_type_id, 
+      payment_method_id) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
 
-  res
-    .status(201)
-    .json({ ...rows[0], message: "Recurring expense created successfully" });
+    const recurringExpensesResult = await pool.query(recurringExpensesQuery, [
+      amount,
+      description,
+      start_date,
+      frequency,
+      next_due_date,
+      category_id,
+      username,
+      transaction_type_id,
+      payment_method_id,
+    ]);
+
+    const transactionsResult = await pool.query(transactionsQuery, [
+      amount,
+      description,
+      start_date,
+      category_id,
+      username,
+      transaction_type_id,
+      payment_method_id,
+    ]);
+
+    await pool.query("COMMIT");
+
+    res.status(201).json({
+      ...recurringExpensesResult.rows[0],
+      message: "Recurring expense created successfully",
+    });
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    throw error;
+  }
 });
 
 /**
@@ -107,7 +135,7 @@ WHERE
 });
 
 /**
- * @description Method to create a new recurring expense
+ * @description Method to get a recurring expense by id
  */
 const getRecurringExpenseById = asyncHandler(async (req, res) => {
   const { id } = req.query;
@@ -127,6 +155,86 @@ const getRecurringExpenseById = asyncHandler(async (req, res) => {
     throw new Error(`No recurring expense found for ${id}`);
   } else {
     res.status(200).json(rows[0]);
+  }
+});
+
+/**
+ * @description Method to get a recurring expense by id
+ */
+const deleteRecurringExpense = asyncHandler(async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    res.status(400);
+    throw new Error("Id is missing");
+  }
+
+  const queryString = `DELETE from recurring_expenses where id = $1 RETURNING *`;
+
+  const { rows } = await pool.query(queryString, [id]);
+
+  console.info(`rows - ${JSON.stringify(rows)}`);
+
+  if (rows.length === 0) {
+    throw new Error(`No recurring expense found for ${id}`);
+  } else {
+    res.status(200).json(rows[0]);
+  }
+});
+
+/**
+ * @description Method to update a recurring expense by id
+ */
+const updateRecurringExpense = asyncHandler(async (req, res) => {
+  const { id } = req.query;
+  const {
+    amount,
+    description,
+    start_date,
+    frequency,
+    category_id,
+    username,
+    transaction_type_id,
+    payment_method_id,
+  } = req.body;
+
+  const next_due_date = getNextDueDate(start_date, frequency);
+
+  const recurringExpensesQuery = `UPDATE recurring_expenses 
+  SET 
+    amount = $1, 
+    description = $2, 
+    start_date = $3, 
+    frequency = $4, 
+    next_due_date = $5, 
+    category_id = $6, 
+    username = $7, 
+    transaction_type_id = $8, 
+    payment_method_id = $9
+  WHERE id = $10
+  RETURNING *;
+  `;
+
+  const { rows } = await pool.query(recurringExpensesQuery, [
+    amount,
+    description,
+    start_date,
+    frequency,
+    next_due_date,
+    category_id,
+    username,
+    transaction_type_id,
+    payment_method_id,
+    id,
+  ]);
+
+  if (rows.length === 0) {
+    throw new Error(`No recurring expense found for ${id}`);
+  } else {
+    res.status(200).json({
+      ...rows[0],
+      message: "Recurring expense updated successfully",
+    });
   }
 });
 
@@ -165,4 +273,6 @@ module.exports = {
   getRecurringExpensesDueToday,
   updateRecurringExpenseNextDueDate,
   getRecurringExpenseById,
+  deleteRecurringExpense,
+  updateRecurringExpense,
 };
