@@ -54,7 +54,9 @@ const createUser = asyncHandler(async (req, res) => {
     console.log(`rows - ${JSON.stringify(rows)}`);
 
     if (rows.length) {
-      res.status(201).json(rows);
+      res
+        .status(201)
+        .json({ ...rows[0], message: "User created successfully" });
     } else {
       console.log(`rows - ${JSON.stringify(rows)}`);
       res.status(500).send("An error occurred on the server");
