@@ -42,14 +42,32 @@ const createUser = asyncHandler(async (req, res) => {
 
   const queryString =
     "INSERT INTO users (username, password, email, currency_id, budget) VALUES ($1, $2, $3, $4, $5) RETURNING *";
-  const { rows } = await pool.query(queryString, [
-    username,
-    password,
-    email,
-    currency_id,
-    budget,
-  ]);
-  res.status(201).json(rows);
+  try {
+    const { rows } = await pool.query(queryString, [
+      username,
+      password,
+      email,
+      currency_id,
+      budget,
+    ]);
+
+    console.log(`rows - ${JSON.stringify(rows)}`);
+
+    if (rows.length) {
+      res.status(201).json(rows);
+    } else {
+      console.log(`rows - ${JSON.stringify(rows)}`);
+      res.status(500).send("An error occurred on the server");
+    }
+  } catch (error) {
+    if (error.code === "23505") {
+      // 23505 is the code for unique_violation in PostgreSQL
+      res.status(400).json({ message: "Username or email already exists" });
+    } else {
+      console.error(error);
+      res.status(500).send("An error occurred on the server");
+    }
+  }
 });
 
 /**
