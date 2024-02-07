@@ -332,9 +332,9 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
       ? null
       : transaction_type_id;
 
-  const queryString = `SELECT subquery.label, subquery.value
+  const queryString = `SELECT subquery.category_id, subquery.label, subquery.value
   FROM (
-    SELECT c.category_name as label, COALESCE(TO_CHAR(SUM(t.amount), 'FM999999990.00'), '0') as value
+    SELECT c.id as category_id, c.category_name as label, COALESCE(TO_CHAR(SUM(t.amount), 'FM999999990.00'), '0') as value
     FROM categories c 
     LEFT JOIN transactions t ON t.category_id = c.id AND t.username = $1
     AND EXTRACT(YEAR FROM t.date) = $2
@@ -342,7 +342,7 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
     AND ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
     AND ($5::INTEGER IS NULL OR t.payment_method_id = $5::INTEGER)
     AND ($6::INTEGER IS NULL OR t.transaction_type_id = $6::INTEGER)
-    GROUP BY c.category_name
+    GROUP BY c.id
   ) as subquery
   ORDER BY CAST(subquery.value AS NUMERIC) DESC;
   
