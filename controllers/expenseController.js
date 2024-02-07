@@ -317,20 +317,6 @@ ORDER BY month;
  */
 const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   const { username, year, month } = req.query;
-  let { category_id } = req.query;
-  let { payment_method_id } = req.query;
-  let { transaction_type_id } = req.query;
-
-  category_id =
-    Number(category_id) == process.env.CATEGORY_ALL_ID ? null : category_id;
-  payment_method_id =
-    Number(payment_method_id) == process.env.PAYMENT_METHODS_ALL_ID
-      ? null
-      : payment_method_id;
-  transaction_type_id =
-    Number(transaction_type_id) == process.env.TRANSACTION_TYPES_ALL_ID
-      ? null
-      : transaction_type_id;
 
   const queryString = `SELECT subquery.category_id, subquery.label, subquery.value
   FROM (
@@ -339,22 +325,12 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
     LEFT JOIN transactions t ON t.category_id = c.id AND t.username = $1
     AND EXTRACT(YEAR FROM t.date) = $2
     AND EXTRACT(MONTH FROM t.date) = $3
-    AND ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
-    AND ($5::INTEGER IS NULL OR t.payment_method_id = $5::INTEGER)
-    AND ($6::INTEGER IS NULL OR t.transaction_type_id = $6::INTEGER)
     GROUP BY c.id
   ) as subquery
   ORDER BY CAST(subquery.value AS NUMERIC) DESC;
-  
   `;
-  const { rows } = await pool.query(queryString, [
-    username,
-    year,
-    month,
-    category_id,
-    payment_method_id,
-    transaction_type_id,
-  ]);
+
+  const { rows } = await pool.query(queryString, [username, year, month]);
 
   let total = 0;
 
