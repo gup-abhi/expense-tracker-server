@@ -34,14 +34,15 @@ const getUser = asyncHandler(async (req, res) => {
  * @description Method to create a new user
  */
 const createUser = asyncHandler(async (req, res) => {
-  const { username, password, email, currency_id, budget } = req.body;
+  const { username, password, email, currency_id, budget, savings_goal } =
+    req.body;
   if (!username || !password || !email || !currency_id) {
     res.status(400);
     throw new Error("Please add all the details");
   }
 
   const queryString =
-    "INSERT INTO users (username, password, email, currency_id, goal) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+    "INSERT INTO users (username, password, email, currency_id, budget, goal) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
   try {
     const { rows } = await pool.query(queryString, [
       username,
@@ -49,6 +50,7 @@ const createUser = asyncHandler(async (req, res) => {
       email,
       currency_id,
       budget,
+      savings_goal,
     ]);
 
     console.log(`rows - ${JSON.stringify(rows)}`);
