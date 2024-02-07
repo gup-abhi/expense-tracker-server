@@ -41,7 +41,7 @@ const createUser = asyncHandler(async (req, res) => {
   }
 
   const queryString =
-    "INSERT INTO users (username, password, email, currency_id, budget) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+    "INSERT INTO users (username, password, email, currency_id, goal) VALUES ($1, $2, $3, $4, $5) RETURNING *";
   try {
     const { rows } = await pool.query(queryString, [
       username,
