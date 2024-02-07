@@ -34,7 +34,7 @@ const getUser = asyncHandler(async (req, res) => {
  * @description Method to create a new user
  */
 const createUser = asyncHandler(async (req, res) => {
-  const { username, password, email, currency_id, budget, savings_goal } =
+  const { username, password, email, currency_id, budget, saving_goal } =
     req.body;
   if (!username || !password || !email || !currency_id) {
     res.status(400);
@@ -50,7 +50,7 @@ const createUser = asyncHandler(async (req, res) => {
       email,
       currency_id,
       budget,
-      savings_goal,
+      saving_goal,
     ]);
 
     console.log(`rows - ${JSON.stringify(rows)}`);
