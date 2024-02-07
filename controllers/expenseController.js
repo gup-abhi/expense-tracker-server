@@ -332,15 +332,20 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
       ? null
       : transaction_type_id;
 
-  const queryString = `SELECT c.category_name as label, COALESCE(TO_CHAR(SUM(t.amount), 'FM999999990.00'), '0') as value
-  FROM categories c 
-  LEFT JOIN transactions t ON t.category_id = c.id AND t.username = $1
-  AND EXTRACT(YEAR FROM t.date) = $2
-  AND EXTRACT(MONTH FROM t.date) = $3
-  AND ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
-  AND ($5::INTEGER IS NULL OR t.payment_method_id = $5::INTEGER)
-  AND ($6::INTEGER IS NULL OR t.transaction_type_id = $6::INTEGER)
-  GROUP BY c.category_name;;
+  const queryString = `SELECT subquery.label, subquery.value
+  FROM (
+    SELECT c.category_name as label, COALESCE(TO_CHAR(SUM(t.amount), 'FM999999990.00'), '0') as value
+    FROM categories c 
+    LEFT JOIN transactions t ON t.category_id = c.id AND t.username = $1
+    AND EXTRACT(YEAR FROM t.date) = $2
+    AND EXTRACT(MONTH FROM t.date) = $3
+    AND ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
+    AND ($5::INTEGER IS NULL OR t.payment_method_id = $5::INTEGER)
+    AND ($6::INTEGER IS NULL OR t.transaction_type_id = $6::INTEGER)
+    GROUP BY c.category_name
+  ) as subquery
+  ORDER BY CAST(subquery.value AS NUMERIC) DESC;
+  
   `;
   const { rows } = await pool.query(queryString, [
     username,
@@ -360,7 +365,7 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
   const rowsWithId = rows.map((row, index) => ({
     id: index,
     ...row,
-    total,
+    // total,
   }));
 
   console.log(`rows - ${JSON.stringify(rowsWithId)}`);
