@@ -30,29 +30,20 @@ const getAllExepnsesForUser = asyncHandler(async (req, res) => {
       ? null
       : transaction_type_id;
 
-  const queryString = `SELECT x.currency_code, t.*, c.category_name, tt.type as transaction_type, pm.method as payment_method
-  from currencies x, categories c, transactions t, users u, transaction_types tt, payment_methods pm
-  where 
-  t.username = $1
-  and 
-  c.id = t.category_id
-  and 
-  u.currency_id = x.id
-  and 
-  tt.id = t.transaction_type_id
-  and 
-  pm.id = t.payment_method_id
-  and 
-  EXTRACT(YEAR FROM date) = $2
-  AND 
-  EXTRACT(MONTH FROM date) = $3
-  AND 
-  ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
-  AND
-  ($5::INTEGER IS NULL OR pm.id = $5::INTEGER)
-  AND
-  ($6::INTEGER IS NULL OR tt.id = $6::INTEGER)
-  order by date desc
+  const queryString = `SELECT t.*, c.category_name, tt.type as transaction_type, pm.method as payment_method, x.currency_code
+  FROM transactions t
+  JOIN categories c ON c.id = t.category_id
+  JOIN transaction_types tt ON tt.id = t.transaction_type_id
+  JOIN payment_methods pm ON pm.id = t.payment_method_id
+  JOIN users u ON u.username = t.username
+  JOIN currencies x ON u.currency_id = x.id
+  WHERE t.username = $1 
+  AND EXTRACT(YEAR FROM t.date) = $2 
+  AND EXTRACT(MONTH FROM t.date) = $3
+  AND ($4::INTEGER IS NULL OR c.id = $4::INTEGER)
+  AND ($5::INTEGER IS NULL OR pm.id = $5::INTEGER)
+  AND ($6::INTEGER IS NULL OR tt.id = $6::INTEGER)
+  ORDER BY date DESC
 `;
   const { rows } = await pool.query(queryString, [
     username,
