@@ -22,8 +22,15 @@ CREATE TABLE users (
     currency_id INTEGER REFERENCES currencies(id) 
 );
 
-Alter table users add column budget DECIMAL(10, 2);
-Alter table users add column goal DECIMAL(10, 2);
+Alter table users ADD column budget DECIMAL(10, 2);
+Alter table users ADD column goal DECIMAL(10, 2);
+ALTER TABLE users ADD COLUMN active BOOLEAN DEFAULT FALSE;
+
+CREATE TABLE user_verification (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE REFERENCES users(username),
+    hash VARCHAR(32) NOT NULL -- Storing a 128-bit hash as a VARCHAR(32) for simplicity
+);
 
 --Categories Table
 CREATE TABLE categories (
@@ -68,6 +75,34 @@ CREATE TABLE recurring_expenses (
     transaction_type_id INTEGER REFERENCES transaction_types(id),
     payment_method_id INTEGER REFERENCES payment_methods(id)
 );
+
+--Triggers
+CREATE OR REPLACE FUNCTION create_verification_hash()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO user_verification (username, hash)
+    VALUES (NEW.username, MD5(NEW.username || NOW()::TEXT));
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_user(
+    username VARCHAR(50),
+    password VARCHAR(50),
+    email VARCHAR(255),
+    currency_id INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO users (username, password, email, currency_id)
+    VALUES (username, password, email, currency_id);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_create_user
+AFTER INSERT ON users
+FOR EACH ROW
+EXECUTE FUNCTION create_verification_hash();
 
 
 -- Insert Default transaction types

@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const { sendWelcomeEmail } = require("../email-templates/newUserMail");
 
 const pool = require("../config/db");
 
@@ -15,18 +16,28 @@ const getUser = asyncHandler(async (req, res) => {
   }
 
   const queryString =
-    "SELECT username FROM users where username = $1 and password = $2";
+    "SELECT username, active FROM users WHERE username = $1 AND password = $2";
   const { rows } = await pool.query(queryString, [username, password]);
 
   console.info(`rows - ${JSON.stringify(rows)}`);
 
   if (rows.length === 0) {
     res.status(404);
-    throw new Error("username or password is invalid");
+    throw new Error("Username or password is invalid");
   } else {
-    res
-      .status(200)
-      .json({ message: "User successfully logged in", ...rows[0] });
+    const user = rows[0];
+    if (!user.active) {
+      res
+        .status(400)
+        .json({ message: "Verification pending", username: user.username });
+    } else {
+      res
+        .status(200)
+        .json({
+          message: "User successfully logged in",
+          username: user.username,
+        });
+    }
   }
 });
 
@@ -56,9 +67,16 @@ const createUser = asyncHandler(async (req, res) => {
     console.log(`rows - ${JSON.stringify(rows)}`);
 
     if (rows.length) {
-      res
-        .status(201)
-        .json({ ...rows[0], message: "User created successfully" });
+      const host = req.get("host");
+      const protocol = req.protocol;
+      const hash = await sendMailAfterRegistration(username);
+
+      await sendWelcomeEmail(
+        rows[0].email,
+        rows[0].username,
+        `${protocol}://${host}/api/user/verify/${hash}`
+      );
+      res.status(201).json({ message: "User created successfully" });
     } else {
       console.log(`rows - ${JSON.stringify(rows)}`);
       res.status(500).send("An error occurred on the server");
@@ -73,6 +91,68 @@ const createUser = asyncHandler(async (req, res) => {
     }
   }
 });
+
+/**
+ * @description This method is used to send email to new registered user
+ * @param {*} username
+ * @returns
+ */
+const sendMailAfterRegistration = async (username) => {
+  const queryString = `SELECT * FROM user_verification WHERE username = $1`;
+
+  try {
+    const { rows } = await pool.query(queryString, [username]);
+
+    if (rows.length > 0) {
+      console.log(`rows - ${JSON.stringify(rows)}`);
+      return rows[0].hash;
+    } else {
+      console.error("No verification record found for the user:", username);
+      return null; // Return null or throw an error, depending on your requirements
+    }
+  } catch (error) {
+    console.error("Error retrieving verification record:", error);
+    // Handle the error appropriately, such as returning null or rethrowing the error
+    return null;
+  }
+};
+
+/**
+ * @description Method to verify user
+ */
+const verifyUser = asyncHandler(async (req, res) => {
+  const { hash } = req.params;
+  console.info(`hash - ${hash}`);
+
+  const queryString = "SELECT username FROM user_verification where hash = $1";
+  const { rows } = await pool.query(queryString, [hash]);
+
+  console.info(`rows - ${JSON.stringify(rows)}`);
+
+  if (rows.length === 0) {
+    res.status(404);
+    throw new Error("Token is invalid");
+  } else {
+    await updateActiveStatus(rows[0].username);
+    res.status(200).send(`<h1>Verified</h1>`);
+  }
+});
+
+/**
+ * @description This method is used to update active column value for new user
+ * @param {*} username
+ * @returns
+ */
+const updateActiveStatus = async (username) => {
+  const queryString = `UPDATE users SET active = true where username = $1`;
+
+  try {
+    const { rows } = await pool.query(queryString, [username]);
+    return true;
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 /**
  * @description Method to get the budget
@@ -268,4 +348,5 @@ module.exports = {
   setGoal,
   getGoal,
   getSavings,
+  verifyUser,
 };
