@@ -31,12 +31,10 @@ const getUser = asyncHandler(async (req, res) => {
         .status(400)
         .json({ message: "Verification pending", username: user.username });
     } else {
-      res
-        .status(200)
-        .json({
-          message: "User successfully logged in",
-          username: user.username,
-        });
+      res.status(200).json({
+        message: "User successfully logged in",
+        username: user.username,
+      });
     }
   }
 });
@@ -76,7 +74,12 @@ const createUser = asyncHandler(async (req, res) => {
         rows[0].username,
         `${protocol}://${host}/api/user/verify/${hash}`
       );
-      res.status(201).json({ message: "User created successfully" });
+      res
+        .status(201)
+        .json({
+          message:
+            "User created successfully. An email is sent with verification link, Please verify the account using the link.",
+        });
     } else {
       console.log(`rows - ${JSON.stringify(rows)}`);
       res.status(500).send("An error occurred on the server");
