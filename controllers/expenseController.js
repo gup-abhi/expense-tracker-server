@@ -326,8 +326,10 @@ const getTotalAmountForEachCategory = asyncHandler(async (req, res) => {
     AND EXTRACT(YEAR FROM t.date) = $2
     AND EXTRACT(MONTH FROM t.date) = $3
     GROUP BY c.id
+    HAVING SUM(t.amount) != 0  -- Filter out rows where the total is zero
   ) as subquery
   ORDER BY CAST(subquery.value AS NUMERIC) DESC;
+  
   `;
 
   const { rows } = await pool.query(queryString, [username, year, month]);
