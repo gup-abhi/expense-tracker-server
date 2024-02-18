@@ -19,7 +19,7 @@ app.use("/api", (req, res, next) => {
 });
 
 // Client build
-app.use(express.static(path.join(__dirname, "client", "build")));
+// app.use(express.static(path.join(__dirname, "client", "build")));
 
 // Routes
 app.use("/api/category", require("./routes/categoryRoute"));
@@ -37,5 +37,7 @@ app.get("*", (req, res) => {
 
 // Error Middleware
 app.use(errorHandler);
+
+// app.listen(PORT, () => console.log(`Server is serving on port - ${PORT}`));
 
 module.exports = app;
