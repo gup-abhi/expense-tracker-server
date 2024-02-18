@@ -38,6 +38,4 @@ app.get("*", (req, res) => {
 // Error Middleware
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`Server is serving on port - ${PORT}`));
-
 module.exports = app;
