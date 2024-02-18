@@ -11,6 +11,13 @@ require("./cron/cronJob");
 app.use(express.json());
 app.use(cors());
 
+// Middleware to set headers for all API routes
+app.use("/api", (req, res, next) => {
+  res.setHeader("Content-Type", "text/html");
+  res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
+  next();
+});
+
 // Client build
 app.use(express.static(path.join(__dirname, "client", "build")));
 
