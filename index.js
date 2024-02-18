@@ -32,3 +32,5 @@ app.get("*", (req, res) => {
 app.use(errorHandler);
 
 app.listen(PORT, () => console.log(`Server is serving on port - ${PORT}`));
+
+module.exports = app;
