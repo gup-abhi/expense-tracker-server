@@ -49,10 +49,10 @@ async function addRecurringExpense() {
 }
 
 // Schedule the cron job to run every minute
-cron.schedule("*/12 * * * *", async () => {
-  // addRecurringExpense();
-  execute();
-});
+// cron.schedule("*/12 * * * *", async () => {
+//   // addRecurringExpense();
+//   execute();
+// });
 
 // Schedule the cron job to run every day at midnight
 cron.schedule("0 0 * * *", addRecurringExpense);
